@@ -60,7 +60,13 @@ impl<P: Provider + DebugApi> BlockProcessor<P> {
             NamedChain::Mainnet => reth_chainspec::MAINNET.clone(),
             NamedChain::Sepolia => reth_chainspec::SEPOLIA.clone(),
             NamedChain::Hoodi => reth_chainspec::HOODI.clone(),
-            NamedChain::AnvilHardhat => reth_chainspec::DEV.clone(),
+            NamedChain::AnvilHardhat => {
+                // reth_chainspec::DEV uses NamedChain::Dev (chain-id 1337), but
+                // AnvilHardhat is chain-id 31337. Build a spec with the correct chain.
+                let mut spec = (*reth_chainspec::DEV).clone();
+                spec.chain = NamedChain::AnvilHardhat.into();
+                Arc::new(spec)
+            }
             chain => bail!("unsupported chain: {chain}"),
         };
 
