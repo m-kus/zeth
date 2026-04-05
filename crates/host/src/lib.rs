@@ -63,7 +63,7 @@ impl<P: Provider + DebugApi> BlockProcessor<P> {
             NamedChain::AnvilHardhat => {
                 // reth_chainspec::DEV uses NamedChain::Dev (chain-id 1337), but
                 // AnvilHardhat is chain-id 31337. Build a spec with the correct chain.
-                let mut spec = (*reth_chainspec::DEV).clone();
+                let mut spec = reth_chainspec::DEV.as_ref().clone();
                 spec.chain = NamedChain::AnvilHardhat.into();
                 Arc::new(spec)
             }

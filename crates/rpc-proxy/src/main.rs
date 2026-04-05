@@ -36,7 +36,7 @@ struct AppState {
     client: Client,
     upstream_url: String,
     provider: DynProvider,
-    evm_config: Arc<EthEvmConfig>,
+    evm_config: Arc<EthEvmConfig<zeth_chainspec::ChainSpec>>,
     lookup: Arc<PreimageLookup>,
 }
 

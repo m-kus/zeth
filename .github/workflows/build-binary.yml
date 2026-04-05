@@ -1,0 +1,30 @@
+name: build-binary
+
+on:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: install rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: build zeth-rpc-proxy
+        run: cargo build --release -p zeth-rpc-proxy
+
+      - name: upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: zeth-rpc-proxy
+          path: target/release/zeth-rpc-proxy
