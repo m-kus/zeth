@@ -1,7 +1,9 @@
 name: build-binary
 
 on:
-  pull_request:
+  push:
+    tags:
+      - "*"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
