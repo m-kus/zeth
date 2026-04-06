@@ -31,9 +31,13 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
+      - name: install risc0
+        uses: ./.github/actions/risc0-toolchain
+        with:
+          version: "3.0.5"
+          rust-version: "1.91.1"
+
       - name: build binaries
-        env:
-          RISC0_SKIP_BUILD: "1"
         run: |
           cargo build --release -p zeth-rpc-proxy --target ${{ matrix.target }}
           cargo build --release -p zeth-host --target ${{ matrix.target }}
