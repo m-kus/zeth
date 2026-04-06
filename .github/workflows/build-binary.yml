@@ -6,11 +6,11 @@ on:
       - "*"
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -38,14 +38,14 @@ jobs:
           cargo build --release -p zeth-rpc-proxy --target ${{ matrix.target }}
           cargo build --release -p zeth-host --target ${{ matrix.target }}
 
-      - name: upload zeth-rpc-proxy
-        uses: actions/upload-artifact@v4
-        with:
-          name: zeth-rpc-proxy-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/zeth-rpc-proxy
+      - name: rename binaries
+        run: |
+          mv target/${{ matrix.target }}/release/zeth-rpc-proxy target/${{ matrix.target }}/release/zeth-rpc-proxy-${{ matrix.target }}
+          mv target/${{ matrix.target }}/release/cli target/${{ matrix.target }}/release/cli-${{ matrix.target }}
 
-      - name: upload cli
-        uses: actions/upload-artifact@v4
+      - name: upload to release
+        uses: softprops/action-gh-release@v2
         with:
-          name: cli-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/cli
+          files: |
+            target/${{ matrix.target }}/release/zeth-rpc-proxy-${{ matrix.target }}
+            target/${{ matrix.target }}/release/cli-${{ matrix.target }}
