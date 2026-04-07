@@ -30,6 +30,7 @@ risc0-ethereum-trie = { workspace = true }
 risc0-zkp = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_with = { workspace = true }
+tracing = { workspace = true }
 
 [target.'cfg(not(all(target_os = "zkvm", target_vendor = "risc0")))'.dependencies]
 ark-bn254 = { workspace = true }

@@ -186,6 +186,7 @@ impl StatelessTrie for SparseState {
     /// Returns the `TrieAccount` that corresponds to the `Address`.
     fn account(&self, address: Address) -> Result<Option<TrieAccount>, ProviderError> {
         let hashed_address = keccak256(address);
+        tracing::debug!(%address, %hashed_address, "account query");
         match self.state.get(hashed_address)? {
             None => Ok(None),
             Some(account) => {
@@ -240,18 +241,14 @@ impl StatelessTrie for SparseState {
                     // apply all state modifications
                     for (hashed_key, value) in &storage.storage {
                         if !value.is_zero() {
-                            eprintln!(
-                                "[zeth-core] storage insert: account={hashed_address}, key={hashed_key}, value={value}"
-                            );
+                            tracing::debug!(%hashed_address, %hashed_key, %value, "storage insert");
                             storage_trie.insert(hashed_key, *value);
                         }
                     }
                     // removals must happen last, otherwise unresolved orphans might still exist
                     for (hashed_key, value) in &storage.storage {
                         if value.is_zero() {
-                            eprintln!(
-                                "[zeth-core] storage remove: account={hashed_address}, key={hashed_key}"
-                            );
+                            tracing::debug!(%hashed_address, %hashed_key, "storage remove");
                             storage_trie.remove(hashed_key);
                         }
                     }
@@ -267,14 +264,11 @@ impl StatelessTrie for SparseState {
                 storage_root,
                 code_hash: account.bytecode_hash.unwrap_or(KECCAK256_EMPTY),
             };
-            eprintln!(
-                "[zeth-core] state insert: account={hashed_address}, nonce={}, balance={}",
-                account.nonce, account.balance
-            );
+            tracing::debug!(%hashed_address, account.nonce, %account.balance, "state insert");
             self.state.insert(hashed_address, account);
         }
         for hashed_address in &removed_accounts {
-            eprintln!("[zeth-core] state remove: account={hashed_address}");
+            tracing::debug!(%hashed_address, "state remove");
             self.remove_account(hashed_address);
         }
 

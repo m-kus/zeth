@@ -7546,6 +7546,7 @@ dependencies = [
  "serde_json",
  "serde_with",
  "sha2",
+ "tracing",
 ]
 
 [[package]]
