@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -47,10 +47,10 @@ jobs:
           mv target/${{ matrix.target }}/release/zeth-rpc-proxy target/${{ matrix.target }}/release/zeth-rpc-proxy-${{ matrix.target }}
           mv target/${{ matrix.target }}/release/cli target/${{ matrix.target }}/release/cli-${{ matrix.target }}
 
-      - name: upload artifacts
-        uses: actions/upload-artifact@v4
+      - name: upload to release
+        uses: softprops/action-gh-release@v2
         with:
-          name: binaries-${{ matrix.target }}
-          path: |
+          make_latest: false
+          files: |
             target/${{ matrix.target }}/release/zeth-rpc-proxy-${{ matrix.target }}
             target/${{ matrix.target }}/release/cli-${{ matrix.target }}
