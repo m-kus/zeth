@@ -21,6 +21,7 @@ reth-chainspec = { workspace = true }
 zeth-chainspec = { path = "../chainspec" }
 reth-evm = { workspace = true }
 reth-evm-ethereum = { workspace = true }
+zeth-core = { workspace = true }
 reth-primitives-traits = { workspace = true }
 reth-revm = { workspace = true }
 reth-stateless = { workspace = true }

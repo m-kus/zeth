@@ -13,8 +13,8 @@
 // limitations under the License.
 
 use zeth_chainspec::HOODI;
-use zeth_core::EthEvmConfig;
+use zeth_core::zeth_evm_config;
 
 pub fn main() {
-    stateless_client::entry(EthEvmConfig::new(HOODI.clone()));
+    stateless_client::entry(zeth_evm_config(HOODI.clone()));
 }

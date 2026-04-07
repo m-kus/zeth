@@ -16,7 +16,10 @@ r0vm = ["dep:num-bigint", "dep:risc0-bigint2"]
 [dependencies]
 alloy-primitives = { workspace = true, features = ["map"] }
 alloy-rlp = { workspace = true }
+ml-kem = { workspace = true }
 num-bigint = { workspace = true, optional = true }
+rand_chacha = { workspace = true }
+rand_core = { workspace = true }
 reth-chainspec = { workspace = true }
 reth-errors = { workspace = true }
 reth-ethereum-primitives = { workspace = true }

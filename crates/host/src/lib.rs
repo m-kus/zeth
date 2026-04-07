@@ -129,7 +129,7 @@ impl<P: Provider + DebugApi> BlockProcessor<P> {
 
     /// Validates the block execution on the host machine.
     pub fn validate(&self, input: Input) -> Result<B256> {
-        let config = zeth_core::EthEvmConfig::new(self.chain_spec.clone());
+        let config = zeth_core::zeth_evm_config(self.chain_spec.clone());
         let hash = zeth_core::validate_block(input, config)?;
 
         Ok(hash)
