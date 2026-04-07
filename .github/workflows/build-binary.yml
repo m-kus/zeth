@@ -1,0 +1,56 @@
+name: build-binary
+
+on:
+  push:
+    tags:
+      - "*"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            target: aarch64-apple-darwin
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: install rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: install risc0
+        uses: ./.github/actions/risc0-toolchain
+        with:
+          version: "3.0.5"
+          rust-version: "1.91.1"
+
+      - name: build binaries
+        run: |
+          cargo build --release -p zeth-rpc-proxy --target ${{ matrix.target }}
+          cargo build --release -p zeth-host --target ${{ matrix.target }}
+
+      - name: rename binaries
+        run: |
+          mv target/${{ matrix.target }}/release/zeth-rpc-proxy target/${{ matrix.target }}/release/zeth-rpc-proxy-${{ matrix.target }}
+          mv target/${{ matrix.target }}/release/cli target/${{ matrix.target }}/release/cli-${{ matrix.target }}
+
+      - name: upload to release
+        uses: softprops/action-gh-release@v2
+        with:
+          make_latest: false
+          files: |
+            target/${{ matrix.target }}/release/zeth-rpc-proxy-${{ matrix.target }}
+            target/${{ matrix.target }}/release/cli-${{ matrix.target }}

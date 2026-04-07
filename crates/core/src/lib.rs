@@ -240,12 +240,18 @@ impl StatelessTrie for SparseState {
                     // apply all state modifications
                     for (hashed_key, value) in &storage.storage {
                         if !value.is_zero() {
+                            eprintln!(
+                                "[zeth-core] storage insert: account={hashed_address}, key={hashed_key}, value={value}"
+                            );
                             storage_trie.insert(hashed_key, *value);
                         }
                     }
                     // removals must happen last, otherwise unresolved orphans might still exist
                     for (hashed_key, value) in &storage.storage {
                         if value.is_zero() {
+                            eprintln!(
+                                "[zeth-core] storage remove: account={hashed_address}, key={hashed_key}"
+                            );
                             storage_trie.remove(hashed_key);
                         }
                     }
@@ -261,9 +267,16 @@ impl StatelessTrie for SparseState {
                 storage_root,
                 code_hash: account.bytecode_hash.unwrap_or(KECCAK256_EMPTY),
             };
+            eprintln!(
+                "[zeth-core] state insert: account={hashed_address}, nonce={}, balance={}",
+                account.nonce, account.balance
+            );
             self.state.insert(hashed_address, account);
         }
-        removed_accounts.iter().for_each(|hashed_address| self.remove_account(hashed_address));
+        for hashed_address in &removed_accounts {
+            eprintln!("[zeth-core] state remove: account={hashed_address}");
+            self.remove_account(hashed_address);
+        }
 
         Ok(self.state.hash())
     }

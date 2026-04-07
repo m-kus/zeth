@@ -22,7 +22,8 @@ use alloy::{
 use anyhow::{Context, bail};
 use clap::Parser;
 use reqwest::Client;
-use reth_chainspec::{DEV, HOODI, MAINNET, NamedChain, SEPOLIA};
+use reth_chainspec::NamedChain;
+use zeth_chainspec::{DEV, HOODI, MAINNET, SEPOLIA};
 use reth_evm_ethereum::EthEvmConfig;
 use serde_json::{Value, json};
 use std::{sync::Arc, time::Duration};
@@ -35,7 +36,7 @@ struct AppState {
     client: Client,
     upstream_url: String,
     provider: DynProvider,
-    evm_config: Arc<EthEvmConfig>,
+    evm_config: Arc<EthEvmConfig<zeth_chainspec::ChainSpec>>,
     lookup: Arc<PreimageLookup>,
 }
 

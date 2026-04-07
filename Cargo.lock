@@ -7602,6 +7602,7 @@ dependencies = [
  "tracing",
  "tracing-actix-web",
  "tracing-subscriber 0.3.22",
+ "zeth-chainspec",
 ]
 
 [[package]]
