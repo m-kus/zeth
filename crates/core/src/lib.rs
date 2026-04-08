@@ -14,23 +14,31 @@
 
 #[cfg(feature = "r0vm")]
 mod crypto;
+mod evm_factory;
+mod mlkem;
 
 use alloy_primitives::{Address, B256, Bytes, KECCAK256_EMPTY, U256, keccak256, map::B256Map};
 use reth_chainspec::{EthChainSpec, Hardforks};
 use reth_errors::ProviderError;
 use reth_ethereum_primitives::Block;
-use reth_evm::{EthEvmFactory, eth::spec::EthExecutorSpec, revm::bytecode::Bytecode};
+use reth_evm::{eth::spec::EthExecutorSpec, revm::bytecode::Bytecode};
 use reth_primitives_traits::Header;
 use reth_stateless::validation::StatelessValidationError;
 use reth_trie_common::{EMPTY_ROOT_HASH, HashedPostState, TrieAccount};
 use risc0_ethereum_trie::CachedTrie;
-use std::{cell::RefCell, collections::hash_map::Entry, fmt::Debug, marker::PhantomData};
+use std::{cell::RefCell, collections::hash_map::Entry, fmt::Debug, marker::PhantomData, sync::Arc};
 
 #[cfg(feature = "r0vm")]
 pub use crypto::{R0vmCrypto, install_r0vm_crypto};
+pub use evm_factory::ZethEvmFactory;
 pub use reth_stateless::{ExecutionWitness, StatelessTrie, UncompressedPublicKey};
 
-pub type EthEvmConfig<C> = reth_evm_ethereum::EthEvmConfig<C, EthEvmFactory>;
+pub type EthEvmConfig<C> = reth_evm_ethereum::EthEvmConfig<C, ZethEvmFactory>;
+
+/// Creates an [`EthEvmConfig`] with the ML-KEM precompile enabled.
+pub fn zeth_evm_config<C>(chain_spec: Arc<C>) -> EthEvmConfig<C> {
+    reth_evm_ethereum::EthEvmConfig::new_with_evm_factory(chain_spec, ZethEvmFactory)
+}
 
 pub mod serde_bincode_compat {
     pub type Block<'a> = reth_primitives_traits::serde_bincode_compat::Block<
@@ -240,12 +248,18 @@ impl StatelessTrie for SparseState {
                     // apply all state modifications
                     for (hashed_key, value) in &storage.storage {
                         if !value.is_zero() {
+                            eprintln!(
+                                "[zeth-core] storage insert: account={hashed_address}, key={hashed_key}, value={value}"
+                            );
                             storage_trie.insert(hashed_key, *value);
                         }
                     }
                     // removals must happen last, otherwise unresolved orphans might still exist
                     for (hashed_key, value) in &storage.storage {
                         if value.is_zero() {
+                            eprintln!(
+                                "[zeth-core] storage remove: account={hashed_address}, key={hashed_key}"
+                            );
                             storage_trie.remove(hashed_key);
                         }
                     }
@@ -261,9 +275,16 @@ impl StatelessTrie for SparseState {
                 storage_root,
                 code_hash: account.bytecode_hash.unwrap_or(KECCAK256_EMPTY),
             };
+            eprintln!(
+                "[zeth-core] state insert: account={hashed_address}, nonce={}, balance={}",
+                account.nonce, account.balance
+            );
             self.state.insert(hashed_address, account);
         }
-        removed_accounts.iter().for_each(|hashed_address| self.remove_account(hashed_address));
+        for hashed_address in &removed_accounts {
+            eprintln!("[zeth-core] state remove: account={hashed_address}");
+            self.remove_account(hashed_address);
+        }
 
         Ok(self.state.hash())
     }

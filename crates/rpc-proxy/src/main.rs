@@ -22,8 +22,9 @@ use alloy::{
 use anyhow::{Context, bail};
 use clap::Parser;
 use reqwest::Client;
-use reth_chainspec::{DEV, HOODI, MAINNET, NamedChain, SEPOLIA};
-use reth_evm_ethereum::EthEvmConfig;
+use reth_chainspec::NamedChain;
+use zeth_chainspec::{DEV, HOODI, MAINNET, SEPOLIA};
+use zeth_core::zeth_evm_config;
 use serde_json::{Value, json};
 use std::{sync::Arc, time::Duration};
 use tracing::{debug, error, field, info, instrument};
@@ -35,7 +36,7 @@ struct AppState {
     client: Client,
     upstream_url: String,
     provider: DynProvider,
-    evm_config: Arc<EthEvmConfig>,
+    evm_config: Arc<zeth_core::EthEvmConfig<zeth_chainspec::ChainSpec>>,
     lookup: Arc<PreimageLookup>,
 }
 
@@ -220,10 +221,10 @@ async fn main() -> anyhow::Result<()> {
     let chain_id = provider.get_chain_id().await.context("eth_chainId failed")?;
     let chain: NamedChain = chain_id.try_into().context("Invalid chain_id")?;
     let evm_config = match chain {
-        NamedChain::Mainnet => Arc::new(EthEvmConfig::ethereum(MAINNET.clone())),
-        NamedChain::Hoodi => Arc::new(EthEvmConfig::ethereum(HOODI.clone())),
-        NamedChain::Sepolia => Arc::new(EthEvmConfig::ethereum(SEPOLIA.clone())),
-        NamedChain::AnvilHardhat => Arc::new(EthEvmConfig::ethereum(DEV.clone())),
+        NamedChain::Mainnet => Arc::new(zeth_evm_config(MAINNET.clone())),
+        NamedChain::Hoodi => Arc::new(zeth_evm_config(HOODI.clone())),
+        NamedChain::Sepolia => Arc::new(zeth_evm_config(SEPOLIA.clone())),
+        NamedChain::AnvilHardhat => Arc::new(zeth_evm_config(DEV.clone())),
         _ => bail!("Unsupported chain: {chain}"),
     };
     info!("EVM config: {}", chain);
